@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className="min-h-full bg-slate-950 text-slate-50">
+    <html lang="en" className="h-full bg-slate-950">
+      <body className="min-h-full bg-slate-950 text-slate-50 antialiased">
         <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-4 md:px-6 md:py-6">
           {/* Navbar */}
           <header className="flex items-center justify-between border-b border-slate-800 pb-3">
