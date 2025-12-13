@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: insightedgeai/insightedgeai-website
+  IMAGE_NAME: insightedge-ai/insightedgeai-website
   COMPOSE_FILE_PATH: /opt/insightedge/docker-compose.yml
 
 jobs:
