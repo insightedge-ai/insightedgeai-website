@@ -1,0 +1,21 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      # Reliable file watching inside Docker
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    volumes:
+      # Your source code (live reload)
+      - .:/app
+      # Keep container deps (do NOT overwrite with host)
+      - /app/node_modules
+      # Keep Next.js cache inside container
+      - /app/.next
+
