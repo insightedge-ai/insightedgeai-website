@@ -3,7 +3,14 @@ export const metadata = {
   title: "Contact – InsightEdge AI",
 };
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ sent?: string }>;
+}) {
+  const sp = (await searchParams) ?? {};
+  const sent = sp.sent === "1";
+
   return (
     <div className="max-w-xl space-y-6">
       <header>
@@ -13,11 +20,18 @@ export default function ContactPage() {
           your current AI stack? Send a quick note and we&apos;ll get back to
           you.
         </p>
+
+        {sent && (
+          <p className="mt-4 rounded-xl border border-emerald-800 bg-emerald-900/30 p-3 text-sm text-emerald-200">
+            Thanks — your message has been received. I usually respond within 24 hours.
+          </p>
+        )}
       </header>
 
       <form
         className="space-y-4 rounded-2xl border border-slate-800 p-4"
-        action="https://formspree.io/f/your-form-id" // replace later, or wire API route
+        //action="https://formspree.io/f/your-form-id" // replace later, or wire API route
+        action="/api/contact"
         method="POST"
       >
         <div>
