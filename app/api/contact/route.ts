@@ -38,8 +38,12 @@ export async function POST(req: Request) {
         `Time: ${createdAt}\n\n` +
         `Message:\n${message}\n`,
     });
-    console.log("[contact] notify result:", notify);
-    
+
+    if (notify.error) {
+      console.error("[contact] notify failed:", notify.error);
+      return NextResponse.redirect(new URL("/contact?sent=0", req.url), 303);
+    }
+    console.log("[contact] notify ok:", notify.data?.id);
 
     // 2) Auto-reply to client
     const autoreply = await resend.emails.send({
@@ -51,12 +55,17 @@ export async function POST(req: Request) {
         `Thanks for reaching out — I’ve received your message and will respond within 24 hours.\n\n` +
         `Best,\nAmin\nInsightEdge AI\n`,
     });
-    console.log("[contact] autoreply result:", autoreply);
 
-    return NextResponse.redirect(new URL("/contact?sent=1", req.url), 303);
+    if (autoreply.error) {
+      // This is expected in Resend testing mode until you verify a domain
+      console.warn("[contact] autoreply failed:", autoreply.error);
+      return NextResponse.redirect(new URL("/contact?sent=1&reply=0", req.url), 303);
+    }
+    console.log("[contact] autoreply ok:", autoreply.data?.id);
+
+    return NextResponse.redirect(new URL("/contact?sent=1&reply=1", req.url), 303);
   } catch (err: any) {
-    console.error("[contact] resend error:", err?.message ?? err, err);
+    console.error("[contact] resend exception:", err?.message ?? err, err);
     return NextResponse.redirect(new URL("/contact?sent=0", req.url), 303);
   }
 }
-
