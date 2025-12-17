@@ -59,7 +59,6 @@ jobs:
             set -euxo pipefail
             # Login to GHCR with PAT so the server can pull private images
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            docker compose -f ${{ env.COMPOSE_FILE_PATH }} pull
-            docker compose -f ${{ env.COMPOSE_FILE_PATH }} up -d
-            docker image prune -f
-
+            sudo docker compose -f ${{ env.COMPOSE_FILE_PATH }} pull
+            sudo docker compose -f ${{ env.COMPOSE_FILE_PATH }} up -d
+            sudo docker image prune -f
