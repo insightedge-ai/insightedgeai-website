@@ -57,7 +57,7 @@ export default function RootLayout({
 
           <footer className="border-t border-slate-800 pt-3 text-xs text-slate-500">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <span>© {new Date().getFullYear()} InsightEdge AI – v0.0.3</span>
+              <span>© {new Date().getFullYear()} InsightEdge AI – v0.0.4</span>
               <span>Production-grade AI, Edge Vision & Intelligent Agents.</span>
             </div>
           </footer>
