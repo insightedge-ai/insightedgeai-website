@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
+function getOrigin(req: Request) {
+  const proto = req.headers.get("x-forwarded-proto") ?? "https";
+  const host =
+    req.headers.get("x-forwarded-host") ??
+    req.headers.get("host") ??
+    "insightedgeai.co.uk";
+  return `${proto}://${host}`;
+}
+
 export async function POST(req: Request) {
   const form = await req.formData();
 
@@ -10,13 +19,15 @@ export async function POST(req: Request) {
   const message = String(form.get("message") ?? "");
   const createdAt = new Date().toISOString();
 
+  const origin = getOrigin(req);
+
   if (!process.env.RESEND_API_KEY) {
     console.error("[contact] RESEND_API_KEY is missing");
-    return NextResponse.redirect(new URL("/contact?sent=0", req.url), 303);
+    return NextResponse.redirect(`${origin}/contact?sent=0`, 303);
   }
   if (!process.env.CONTACT_TO_EMAIL || !process.env.CONTACT_FROM_EMAIL) {
     console.error("[contact] CONTACT_TO_EMAIL/CONTACT_FROM_EMAIL is missing");
-    return NextResponse.redirect(new URL("/contact?sent=0", req.url), 303);
+    return NextResponse.redirect(`${origin}/contact?sent=0`, 303);
   }
 
   console.log("[contact] submission:", { name, email, company, message, createdAt });
@@ -41,7 +52,7 @@ export async function POST(req: Request) {
 
     if (notify.error) {
       console.error("[contact] notify failed:", notify.error);
-      return NextResponse.redirect(new URL("/contact?sent=0", req.url), 303);
+      return NextResponse.redirect(`${origin}/contact?sent=0`, 303);
     }
     console.log("[contact] notify ok:", notify.data?.id);
 
@@ -59,13 +70,13 @@ export async function POST(req: Request) {
     if (autoreply.error) {
       // This is expected in Resend testing mode until you verify a domain
       console.warn("[contact] autoreply failed:", autoreply.error);
-      return NextResponse.redirect(new URL("/contact?sent=1&reply=0", req.url), 303);
+      return NextResponse.redirect(`${origin}/contact?sent=1&reply=0`, 303);
     }
     console.log("[contact] autoreply ok:", autoreply.data?.id);
 
-    return NextResponse.redirect(new URL("/contact?sent=1&reply=1", req.url), 303);
+    return NextResponse.redirect(`${origin}/contact?sent=1&reply=1`, 303);
   } catch (err: any) {
     console.error("[contact] resend exception:", err?.message ?? err, err);
-    return NextResponse.redirect(new URL("/contact?sent=0", req.url), 303);
+    return NextResponse.redirect(`${origin}/contact?sent=0`, 303);
   }
 }
