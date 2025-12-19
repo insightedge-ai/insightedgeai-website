@@ -2,6 +2,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import ChatWidget from "@/components/ChatWidget";
 
 export const metadata = {
   title: "InsightEdge AI – Production-Grade AI & Edge Vision",
@@ -62,6 +63,7 @@ export default function RootLayout({
             </div>
           </footer>
         </div>
+        <ChatWidget />
       </body>
     </html>
   );
