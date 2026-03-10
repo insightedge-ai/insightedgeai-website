@@ -1,6 +1,6 @@
 services:
   insightedgeai-website:
-    image: ghcr.io/insightedge-ai/insightedgeai-website:latest
+    image: ${WEBSITE_IMAGE}
     pull_policy: always
     container_name: insightedgeai-website
     restart: unless-stopped
@@ -14,7 +14,7 @@ services:
     networks: [web]
 
   insightedgeai-rag-backend:
-    image: ghcr.io/insightedge-ai/website-chatbot-rag:latest
+    image: ${RAG_IMAGE}
     pull_policy: always
     container_name: insightedgeai-rag-backend
     restart: unless-stopped
