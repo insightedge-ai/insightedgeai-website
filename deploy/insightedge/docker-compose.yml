@@ -1,0 +1,34 @@
+services:
+  insightedgeai-website:
+    image: ghcr.io/insightedge-ai/insightedgeai-website:latest
+    pull_policy: always
+    container_name: insightedgeai-website
+    restart: unless-stopped
+    env_file:
+      - ./.env.website
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    expose:
+      - "3000"
+    networks: [web]
+
+  insightedgeai-rag-backend:
+    image: ghcr.io/insightedge-ai/website-chatbot-rag:latest
+    pull_policy: always
+    container_name: insightedgeai-rag-backend
+    restart: unless-stopped
+    env_file:
+      - ./.env.rag
+    expose:
+      - "8010"
+    volumes:
+      - insightedgeai_rag_data:/app/data
+    networks: [web]
+
+volumes:
+  insightedgeai_rag_data:
+
+networks:
+  web:
+    external: true

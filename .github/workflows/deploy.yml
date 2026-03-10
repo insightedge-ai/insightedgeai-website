@@ -1,4 +1,4 @@
-name: Build & Deploy InsightEdge AI Website
+name: Build & Deploy InsightEdge Stack
 
 on:
   push:
@@ -7,25 +7,23 @@ on:
 
 permissions:
   contents: read
-  packages: write    # needed to push to GHCR
+  packages: write
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: insightedge-ai/insightedgeai-website
-  COMPOSE_FILE_PATH: /opt/insightedge/docker-compose.yml
+  WEBSITE_IMAGE_NAME: insightedge-ai/insightedgeai-website
 
 jobs:
-  build-and-push:
+  build-and-push-website:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Login to GHCR (for push)
+      - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -38,27 +36,95 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.WEBSITE_IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.WEBSITE_IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: build-and-push-website
 
     steps:
-      - name: Deploy to Linode via SSH
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate website runtime env
+        run: |
+          cat > /tmp/insightedge.website.env <<'EOW'
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          CONTACT_FROM_EMAIL=${{ secrets.CONTACT_FROM_EMAIL }}
+          CONTACT_TO_EMAIL=${{ secrets.CONTACT_TO_EMAIL }}
+          RAG_BACKEND_URL=${{ secrets.RAG_BACKEND_URL }}
+          RAG_WIDGET_KEY=${{ secrets.RAG_WIDGET_KEY }}
+          EOW
+
+      - name: Generate RAG runtime env
+        run: |
+          cat > /tmp/insightedge.rag.env <<'EOR'
+          LLM_BASE_URL=${{ secrets.LLM_BASE_URL }}
+          LLM_API_KEY=${{ secrets.LLM_API_KEY }}
+          EMBEDDING_MODEL=${{ secrets.EMBEDDING_MODEL }}
+          CHAT_MODEL=${{ secrets.CHAT_MODEL }}
+          INDEX_DIR=${{ secrets.INDEX_DIR }}
+          WIDGET_API_KEY=${{ secrets.WIDGET_API_KEY }}
+          ALLOWED_ORIGINS=${{ secrets.ALLOWED_ORIGINS }}
+          ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }}
+          DATA_DIR=${{ secrets.DATA_DIR }}
+          EOR
+
+      - name: Generate deploy env
+        run: |
+          cat > /tmp/insightedge.deploy.env <<'EOD'
+          GHCR_USERNAME=${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN=${{ secrets.GHCR_TOKEN }}
+          EOD
+
+      - name: Upload runtime and deploy env files to server /tmp
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.LINODE_HOST }}
+          username: ${{ secrets.LINODE_USER }}
+          key: ${{ secrets.LINODE_SSH_KEY }}
+          source: "/tmp/insightedge.website.env,/tmp/insightedge.rag.env,/tmp/insightedge.deploy.env"
+          target: "/tmp"
+          strip_components: 1
+
+      - name: Upload deployment files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.LINODE_HOST }}
+          username: ${{ secrets.LINODE_USER }}
+          key: ${{ secrets.LINODE_SSH_KEY }}
+          source: "deploy/insightedge/docker-compose.yml,deploy/insightedge/website.env.allowlist,deploy/insightedge/rag.env.allowlist,deploy/insightedge/deploy.allowlist,deploy/insightedge/healthcheck.sh,deploy/insightedge/remote_deploy_insightedge.sh"
+          target: "/opt/insightedge"
+          strip_components: 2
+
+      - name: Install deploy files and run deploy script
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.LINODE_HOST }}
-          username: ${{ secrets.LINODE_USER }}      # root
+          username: ${{ secrets.LINODE_USER }}
           key: ${{ secrets.LINODE_SSH_KEY }}
           script_stop: true
           script: |
-            set -euxo pipefail
-            # Login to GHCR with PAT so the server can pull private images
-            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            docker compose -f ${{ env.COMPOSE_FILE_PATH }} pull
-            docker compose -f ${{ env.COMPOSE_FILE_PATH }} up -d
-            docker image prune -f
+            set -Eeuo pipefail
+
+            mkdir -p /opt/insightedge
+
+            chown root:root /opt/insightedge/docker-compose.yml \
+              /opt/insightedge/website.env.allowlist \
+              /opt/insightedge/rag.env.allowlist \
+              /opt/insightedge/deploy.allowlist \
+              /opt/insightedge/healthcheck.sh \
+              /opt/insightedge/remote_deploy_insightedge.sh
+
+            chmod 644 /opt/insightedge/docker-compose.yml \
+              /opt/insightedge/website.env.allowlist \
+              /opt/insightedge/rag.env.allowlist \
+              /opt/insightedge/deploy.allowlist
+
+            chmod 750 /opt/insightedge/healthcheck.sh \
+              /opt/insightedge/remote_deploy_insightedge.sh
+
+            /opt/insightedge/remote_deploy_insightedge.sh
