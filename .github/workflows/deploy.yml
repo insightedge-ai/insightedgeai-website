@@ -134,12 +134,16 @@ jobs:
 
             echo
             echo "== docker compose ps =="
-            docker compose -f /opt/insightedge/docker-compose.yml --env-file /opt/insightedge/.env.website ps
+            set -a
+            source /opt/insightedge/.deploy.env
+            source /opt/insightedge/.env.runtime
+            set +a
+            docker compose -f /opt/insightedge/docker-compose.yml ps
 
             echo
-            echo "== local website health =="
-            docker exec insightedgeai-website sh -lc 'wget -qO- http://localhost:3000/ | head -c 200 || true'
+            echo "== website via Docker network =="
+            docker run --rm --network web curlimages/curl:8.7.1 http://insightedgeai-website:3000 -I
 
             echo
-            echo "== local rag health =="
-            docker exec insightedgeai-rag-backend sh -lc 'wget -qO- http://localhost:8010/health || true'
+            echo "== rag health via Docker network =="
+            docker run --rm --network web curlimages/curl:8.7.1 http://insightedgeai-rag-backend:8010/health
