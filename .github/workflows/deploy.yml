@@ -27,19 +27,23 @@ jobs:
           mkdir -p "${GEN_DIR}"
 
           cat > "${GEN_DIR}/.env.website" <<'EOW'
-          WEBSITE_PORT=${{ secrets.INSIGHTEDGE_WEBSITE_PORT }}
-          NEXT_PUBLIC_SITE_URL=${{ secrets.INSIGHTEDGE_NEXT_PUBLIC_SITE_URL }}
-          NEXT_PUBLIC_API_BASE_URL=${{ secrets.INSIGHTEDGE_NEXT_PUBLIC_API_BASE_URL }}
-          NEXT_PUBLIC_RAG_API_URL=${{ secrets.INSIGHTEDGE_NEXT_PUBLIC_RAG_API_URL }}
+          RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}
+          CONTACT_FROM_EMAIL=${{ vars.CONTACT_FROM_EMAIL }}
+          CONTACT_TO_EMAIL=${{ vars.CONTACT_TO_EMAIL }}
+          RAG_BACKEND_URL=${{ vars.RAG_BACKEND_URL }}
+          RAG_WIDGET_KEY=${{ secrets.RAG_WIDGET_KEY }}
           EOW
 
           cat > "${GEN_DIR}/.env.rag" <<'EOR'
-          RAG_PORT=${{ secrets.INSIGHTEDGE_RAG_PORT }}
-          OPENAI_API_KEY=${{ secrets.INSIGHTEDGE_OPENAI_API_KEY }}
-          OPENAI_MODEL=${{ secrets.INSIGHTEDGE_OPENAI_MODEL }}
-          PINECONE_API_KEY=${{ secrets.INSIGHTEDGE_PINECONE_API_KEY }}
-          PINECONE_INDEX=${{ secrets.INSIGHTEDGE_PINECONE_INDEX }}
-          PINECONE_ENVIRONMENT=${{ secrets.INSIGHTEDGE_PINECONE_ENVIRONMENT }}
+          LLM_BASE_URL=${{ vars.LLM_BASE_URL }}
+          LLM_API_KEY=${{ secrets.LLM_API_KEY }}
+          EMBEDDING_MODEL=${{ vars.EMBEDDING_MODEL }}
+          CHAT_MODEL=${{ vars.CHAT_MODEL }}
+          INDEX_DIR=${{ vars.INDEX_DIR }}
+          WIDGET_API_KEY=${{ secrets.WIDGET_API_KEY }}
+          ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
+          ADMIN_TOKEN=${{ secrets.ADMIN_TOKEN }}
+          DATA_DIR=${{ vars.DATA_DIR }}
           EOR
 
           cat > "${GEN_DIR}/.deploy.env" <<'EOD'
