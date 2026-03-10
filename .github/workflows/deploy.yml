@@ -92,9 +92,8 @@ jobs:
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.LINODE_HOST }}
-          username: ${{ secrets.LINODE_USERNAME }}
+          username: ${{ secrets.LINODE_USER }}
           key: ${{ secrets.LINODE_SSH_KEY }}
-          port: ${{ secrets.LINODE_PORT }}
           source: "deploy/insightedge/.generated/.env.website,deploy/insightedge/.generated/.env.rag,deploy/insightedge/.generated/.deploy.env"
           target: "${{ env.TMP_DEPLOY_DIR }}"
           strip_components: 3
@@ -103,9 +102,8 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.LINODE_HOST }}
-          username: ${{ secrets.LINODE_USERNAME }}
+          username: ${{ secrets.LINODE_USER }}
           key: ${{ secrets.LINODE_SSH_KEY }}
-          port: ${{ secrets.LINODE_PORT }}
           script: |
             set -euo pipefail
 
@@ -122,9 +120,8 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.LINODE_HOST }}
-          username: ${{ secrets.LINODE_USERNAME }}
+          username: ${{ secrets.LINODE_USER }}
           key: ${{ secrets.LINODE_SSH_KEY }}
-          port: ${{ secrets.LINODE_PORT }}
           script: |
             set -euo pipefail
 
