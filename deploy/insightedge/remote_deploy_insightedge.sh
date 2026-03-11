@@ -108,14 +108,18 @@ set +a
 cat "${APP_DIR}/.env.website" "${APP_DIR}/.env.rag" > "${APP_DIR}/.env.runtime"
 chmod 600 "${APP_DIR}/.env.runtime"
 
+set -a
+source "${APP_DIR}/.env.runtime"
+set +a
+
 log "Logging into GHCR"
 echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
 
 log "Pulling latest images"
-docker compose -f "${APP_DIR}/docker-compose.yml" --env-file "${APP_DIR}/.env.runtime" pull
+docker compose -f "${APP_DIR}/docker-compose.yml" pull
 
 log "Starting containers"
-docker compose -f "${APP_DIR}/docker-compose.yml" --env-file "${APP_DIR}/.env.runtime" up -d --force-recreate --remove-orphans
+docker compose -f "${APP_DIR}/docker-compose.yml" up -d --force-recreate --remove-orphans
 
 log "Running healthcheck"
 "${APP_DIR}/healthcheck.sh"
