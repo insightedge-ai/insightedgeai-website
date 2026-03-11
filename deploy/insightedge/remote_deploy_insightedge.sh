@@ -125,3 +125,4 @@ log "Running healthcheck"
 "${APP_DIR}/healthcheck.sh"
 
 log "Deployment completed successfully"
+
