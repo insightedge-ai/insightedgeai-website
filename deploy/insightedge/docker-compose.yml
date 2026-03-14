@@ -11,7 +11,10 @@ services:
       PORT: 3000
     expose:
       - "3000"
-    networks: [web]
+    networks:
+      web:
+        aliases:
+          - insightedgeai-website
 
   insightedgeai-rag-backend:
     image: ${RAG_IMAGE}
@@ -24,7 +27,10 @@ services:
       - "8010"
     volumes:
       - insightedgeai_rag_data:/app/data
-    networks: [web]
+    networks:
+      web:
+        aliases:
+          - insightedgeai-rag-backend
 
 volumes:
   insightedgeai_rag_data:
